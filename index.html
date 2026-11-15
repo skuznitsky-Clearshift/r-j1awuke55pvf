@@ -59,6 +59,8 @@ try{
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(j.iv)},key,b64(j.ct));
   p=JSON.parse(new TextDecoder().decode(pt));
 }catch(e){return msg('<b>הקישור לא תקף</b>כנראה יצא דוח חדש יותר. פתח את הקישור מהסגירה האחרונה.')}
+p.reports=(p.reports||[]).filter(x=>!x.checked_at||Date.now()-new Date(x.checked_at)<259200000);
+if(!p.reports.length)return msg('<b>אין דוחות פעילים</b>אין כרגע פעולה תקועה לא מוסברת.');
 const exp=new Date(p.expires);
 if(Date.now()>exp)return msg('<b>פג תוקף</b>הדוחות היו זמינים 72 שעות.');
 $('exp').textContent='עד '+exp.toLocaleString('he-IL',{weekday:'short',hour:'2-digit',minute:'2-digit'});
