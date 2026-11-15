@@ -28,6 +28,10 @@ section{flex:none;width:100%;height:100%;overflow-y:auto;scroll-snap-align:start
 .head h2{font-size:24px;font-weight:800;line-height:1.2}
 .head .meta{font-size:13px;opacity:.85;margin-top:4px}
 .head .prob{font-size:16px;font-weight:600;margin-top:10px;line-height:1.45}
+.info{background:var(--card);border-radius:22px;padding:4px 18px;margin-bottom:12px}
+.info .row{padding:12px 0;border-bottom:1px solid var(--line)}.info .row:last-child{border:0}
+.info b{display:block;font-size:13px;color:var(--sub);font-weight:600;margin-bottom:3px}
+.info p{font-size:16px;line-height:1.45}
 section img{display:block;width:100%;height:auto;border-radius:16px;background:#fff}
 .dots{display:flex;justify-content:center;gap:6px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex:none;background:var(--bg)}
 .dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
@@ -49,7 +53,7 @@ if(!k)return msg('<b>אין גישה</b>הקישור לא שלם. פתח אות�
 let p;
 try{
   const r=await fetch('d.json?t='+Date.now(),{cache:'no-store'});
-  if(!r.ok)return msg('<b>אין דוחות פעילים</b>הדוחות נמחקו (עברו 72 שעות או שיצא דוח חדש).');
+  if(!r.ok)return msg('<b>אין דוחות פעילים</b>אין כרגע פעולה תקועה לא מוסברת, או שעברו 72 שעות מהעדכון האחרון.');
   const j=await r.json();
   const key=await crypto.subtle.importKey('raw',b64(k),'AES-GCM',false,['decrypt']);
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(j.iv)},key,b64(j.ct));
@@ -61,10 +65,13 @@ $('exp').textContent='עד '+exp.toLocaleString('he-IL',{weekday:'short',hour:'2
 const T=$('track'),N=$('nav'),D=$('dots');T.innerHTML='';
 p.reports.forEach((x,i)=>{
   const s=document.createElement('section');
-  s.innerHTML='<div class="head"><h2></h2><div class="meta"></div><div class="prob"></div></div>';
+  s.innerHTML='<div class="head"><h2></h2><div class="meta"></div><div class="prob"></div></div><div class="info"></div>';
   s.querySelector('h2').textContent=x.client;
-  s.querySelector('.meta').textContent=[x.order,x.since].filter(Boolean).join(' · ');
+  s.querySelector('.meta').textContent=[x.order,x.since,x.days!=null?'תקוע '+x.days+' ימים':''].filter(Boolean).join(' · ');
   s.querySelector('.prob').textContent=x.problem||'';
+  const inf=s.querySelector('.info'),row=(k,v)=>{if(!v||(Array.isArray(v)&&!v.length))return;const d=document.createElement('div');d.className='row';const b=document.createElement('b');b.textContent=k;d.appendChild(b);(Array.isArray(v)?v:[v]).forEach(t=>{const p=document.createElement('p');p.textContent=t;d.appendChild(p)});inf.appendChild(d)};
+  row('🆕 מה חדש',x.updates);row('📞 פנייה לשירות',x.support);row('💰 מימון',x.funding);
+  if(!inf.children.length)inf.remove();
   (x.imgs||[]).forEach(src=>{const im=new Image();im.src=src;im.alt=x.client;im.loading=i?'lazy':'eager';s.appendChild(im)});
   T.appendChild(s);
   const b=document.createElement('button');b.textContent=x.client;b.onclick=()=>s.scrollIntoView({behavior:'smooth',inline:'start',block:'nearest'});N.appendChild(b);
