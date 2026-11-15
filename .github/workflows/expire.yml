@@ -1,0 +1,24 @@
+name: expire
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: delete reports older than 72h
+        run: |
+          [ -f d.json ] || exit 0
+          age=$(( $(date +%s) - $(git log -1 --format=%ct -- d.json) ))
+          [ "$age" -gt 259200 ] || exit 0
+          git config user.name expire-bot
+          git config user.email expire-bot@users.noreply.github.com
+          git rm -q d.json
+          git commit -m "expire reports (72h)"
+          git push
